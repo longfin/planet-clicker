@@ -414,7 +414,12 @@ namespace LibplanetUnity
 
                 var task = Task.Run(async () =>
                 {
-                    var block = await _blocks.MineBlock(Address);
+                    var block = await _blocks.MineBlock(Address, append: false);
+                    var sw = new System.Diagnostics.Stopwatch();
+                    sw.Start();
+                    _blocks.Append(block);
+                    sw.Stop();
+                    Debug.Log($"Elapsed: {sw.Elapsed} with {block.Transactions.Count()} transactions");
 
                     if (_swarm?.Running ?? false)
                     {
