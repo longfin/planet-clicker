@@ -21,6 +21,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -67,6 +68,11 @@ namespace LibplanetUnity
         public Address Address { get; private set; }
 
         public IEnumerable<IRenderer<PolymorphicAction<ActionBase>>> Renderers { get; private set; }
+
+        static Agent()
+        {
+            Libplanet.Crypto.CryptoConfig.CryptoBackend = new Secp256K1CryptoBackend<SHA256>();
+        }
 
         public static void Initialize(IEnumerable<IRenderer<PolymorphicAction<ActionBase>>> renderers)
         {
