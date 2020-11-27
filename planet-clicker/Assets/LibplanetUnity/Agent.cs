@@ -155,7 +155,7 @@ namespace LibplanetUnity
                 maxBlockBytes: 10 * 1000 * 1000,
                 maxGenesisBytes: 10 * 1000 * 1000,
                 maxTransactionsPerBlock: 500,
-                minimumDifficulty: 100000,
+                minimumDifficulty: 4096,
                 difficultyBoundDivisor: 2048);
             PrivateKey = privateKey;
             Address = privateKey.PublicKey.ToAddress();
@@ -417,12 +417,16 @@ namespace LibplanetUnity
 
                 var task = Task.Run(async () =>
                 {
-                    var block = await _blocks.MineBlock(Address, append: false);
                     var sw = new System.Diagnostics.Stopwatch();
+                    Debug.Log($"CoMiner: Starts with {_blocks.GetStagedTransactionIds().Count} transactions.");
+                    sw.Start();
+                    var block = await _blocks.MineBlock(Address, append: false);
+                    sw.Stop();
+                    Debug.Log($"CoMiner: Block[{block.Hash}] with {block.Transactions.Count()} txs candidated. (Elapsed: {sw.Elapsed})");
                     sw.Start();
                     _blocks.Append(block);
                     sw.Stop();
-                    Debug.Log($"Elapsed: {sw.Elapsed} with {block.Transactions.Count()} transactions");
+                    Debug.Log($"CoMiner: Block[{block.Hash}] with {block.Transactions.Count()} txs appended. (Elapsed: {sw.Elapsed})");
 
                     if (_swarm?.Running ?? false)
                     {
