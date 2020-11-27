@@ -150,10 +150,13 @@ namespace LibplanetUnity
             IEnumerable<IRenderer<PolymorphicAction<ActionBase>>> renderers)
         {
             var policy = new BlockPolicy<PolymorphicAction<ActionBase>>(
-                null,
-                BlockInterval,
-                100000,
-                2048);
+                blockAction: null,
+                blockInterval: BlockInterval,
+                maxBlockBytes: 10 * 1000 * 1000,
+                maxGenesisBytes: 10 * 1000 * 1000,
+                maxTransactionsPerBlock: 500,
+                minimumDifficulty: 100000,
+                difficultyBoundDivisor: 2048);
             PrivateKey = privateKey;
             Address = privateKey.PublicKey.ToAddress();
             _store = new DefaultStore(path, flush: false);
