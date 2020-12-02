@@ -256,10 +256,23 @@ namespace LibplanetUnity
 
         protected override void OnDestroy()
         {
-            NetMQConfig.Cleanup(false);
-
             base.OnDestroy();
-            _store.Dispose();
+            StopAllCoroutines();
+
+            if (_swarm?.Running ?? false)
+            {
+                _swarm?.StopAsync(TimeSpan.FromMilliseconds(1000))
+                    .ContinueWith(_ =>
+                    {
+                        (_store as IDisposable)?.Dispose();
+                        (_stateStore as IDisposable)?.Dispose();
+                        _swarm?.Dispose();
+                    })
+                    .Wait(1000 + 1 * 1000);
+            }
+            else
+            {
+            }
         }
 
         #endregion
@@ -398,6 +411,7 @@ namespace LibplanetUnity
 
         private static bool WantsToQuit()
         {
+            NetMQConfig.Cleanup(false);
             return true;
         }
 
