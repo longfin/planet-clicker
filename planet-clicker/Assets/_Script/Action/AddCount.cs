@@ -39,12 +39,12 @@ namespace _Script.Action
 
             Debug.Log($"add_count: CurrentCount: {currentCount}, NextCount: {nextCount}");
 
-            var rankingState = states.TryGetState(rankingAddress, out Bencodex.Types.Dictionary bdict)
-                ? new RankingState(bdict)
-                : new RankingState();
-
-            rankingState.Update(ctx.Signer, nextCount);
-            states = states.SetState(rankingAddress, rankingState.Serialize());
+            if (!states.TryGetState(rankingAddress, out Bencodex.Types.Dictionary rankingState))
+            {
+                rankingState = new Dictionary();
+            }
+            rankingState = rankingState.SetItem(ctx.Signer.ToByteArray(), nextCount);
+            states = states.SetState(rankingAddress, rankingState);
             return states.SetState(ctx.Signer, (Bencodex.Types.Integer)nextCount);
         }
     }
