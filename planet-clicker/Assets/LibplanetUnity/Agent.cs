@@ -7,6 +7,7 @@ using Libplanet.Blockchain.Renderers;
 using Libplanet.Blocks;
 using Libplanet.Crypto;
 using Libplanet.Net;
+using Libplanet.RocksDBStore;
 using Libplanet.Store;
 using Libplanet.Tx;
 using LibplanetUnity.Action;
@@ -57,13 +58,15 @@ namespace LibplanetUnity
 
         private Swarm<PolymorphicAction<ActionBase>> _swarm;
 
-        private DefaultStore _store;
+        private IStore _store;
 
         private ImmutableList<Peer> _seedPeers;
 
         private IImmutableSet<Address> _trustedPeers;
 
         private CancellationTokenSource _cancellationTokenSource;
+
+        private IStateStore _stateStore;
 
         public Address Address { get; private set; }
 
@@ -159,7 +162,11 @@ namespace LibplanetUnity
                 difficultyBoundDivisor: 2048);
             PrivateKey = privateKey;
             Address = privateKey.PublicKey.ToAddress();
-            _store = new DefaultStore(path, flush: false);
+            _store = new RocksDBStore(path);
+            _stateStore = new TrieStateStore(
+                new RocksDBKeyValueStore(Path.Combine(path, "states")),
+                new RocksDBKeyValueStore(Path.Combine(path, "state_hash"))
+            );
             Block<PolymorphicAction<ActionBase>> genesis =
                 Block<PolymorphicAction<ActionBase>>.Deserialize(
                     File.ReadAllBytes(GenesisBlockPath)
@@ -167,7 +174,7 @@ namespace LibplanetUnity
             _blocks = new BlockChain<PolymorphicAction<ActionBase>>(
                 policy,
                 _store,
-                _store,
+                _stateStore,
                 genesis,
                 renderers
             );
