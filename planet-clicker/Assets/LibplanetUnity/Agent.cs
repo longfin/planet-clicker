@@ -421,6 +421,8 @@ namespace LibplanetUnity
             while (true)
             {
                 var txs = new HashSet<Transaction<PolymorphicAction<ActionBase>>>();
+                var ssw = new System.Diagnostics.Stopwatch();
+                ssw.Start();
 
                 var task = Task.Run(async () =>
                 {
@@ -488,6 +490,13 @@ namespace LibplanetUnity
                     {
                         MakeTransaction(retryAction, true);
                     }
+                }
+
+                var sleep = BlockInterval - ssw.Elapsed;
+
+                if (sleep > TimeSpan.Zero)
+                {
+                    yield return new WaitForSeconds((float)(sleep.TotalSeconds));
                 }
             }
         }
