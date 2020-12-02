@@ -115,8 +115,8 @@ namespace LibplanetUnity
             if (options.Logging)
             {
                 Log.Logger = new LoggerConfiguration()
-                    .MinimumLevel.Debug()
-                    .WriteTo.Console()
+                    .MinimumLevel.Verbose()
+                    .WriteTo.Sink(new UnityDebugSink())
                     .CreateLogger();
             }
 
