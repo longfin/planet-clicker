@@ -137,8 +137,9 @@ namespace LibplanetUnity
                 port,
                 appProtocolVersion,
                 trustedAppProtocolVersionSigners,
-                options.RenderActions ? renderers : default
-                );
+                options.RenderActions ? renderers : default,
+                options.AuthorizedMiners.Select(a => new Address(a))
+            );
 
             _miner = options.NoMiner ? null : CoMiner();
 
@@ -211,16 +212,21 @@ namespace LibplanetUnity
             int? port,
             AppProtocolVersion appProtocolVersion,
             IEnumerable<PublicKey> trustedAppProtocolVersionSigners,
-            IEnumerable<IRenderer<PolymorphicAction<ActionBase>>> renderers)
+            IEnumerable<IRenderer<PolymorphicAction<ActionBase>>> renderers,
+            IEnumerable<Address> authorizedMiners)
         {
-            var policy = new BlockPolicy<PolymorphicAction<ActionBase>>(
-                blockAction: null,
-                blockInterval: BlockInterval,
-                maxBlockBytes: 10 * 1000 * 1000,
-                maxGenesisBytes: 10 * 1000 * 1000,
-                maxTransactionsPerBlock: 3000,
-                minimumDifficulty: 4096,
-                difficultyBoundDivisor: 2048);
+            var policy = new ConvertibleBlockPolicy(
+                new BlockPolicy<PolymorphicAction<ActionBase>>(
+                    blockAction: null,
+                    blockInterval: BlockInterval,
+                    maxBlockBytes: 10 * 1000 * 1000,
+                    maxGenesisBytes: 10 * 1000 * 1000,
+                    maxTransactionsPerBlock: 3000,
+                    minimumDifficulty: 4096,
+                    difficultyBoundDivisor: 2048
+                ),
+                authorizedMiners
+            );
             PrivateKey = privateKey;
             Address = privateKey.PublicKey.ToAddress();
             _store = new RocksDBStore(path);
@@ -568,6 +574,50 @@ namespace LibplanetUnity
                 {
                     yield return new WaitForSeconds((float)(sleep.TotalSeconds));
                 }
+            }
+        }
+
+        private class ConvertibleBlockPolicy : IBlockPolicy<PolymorphicAction<ActionBase>>
+        {
+            private readonly BlockPolicy<PolymorphicAction<ActionBase>> _impl;
+            private readonly IEnumerable<Address> _authorizedMiners;
+
+            public ConvertibleBlockPolicy(
+                BlockPolicy<PolymorphicAction<ActionBase>> impl, 
+                IEnumerable<Address> authorizedMiners
+            )
+            {
+                _impl = impl;
+                _authorizedMiners = authorizedMiners.ToList();
+            }
+
+            public IAction BlockAction => ((IBlockPolicy<PolymorphicAction<ActionBase>>)_impl).BlockAction;
+
+            public int MaxTransactionsPerBlock => ((IBlockPolicy<PolymorphicAction<ActionBase>>)_impl).MaxTransactionsPerBlock;
+
+            public bool DoesTransactionFollowsPolicy(Transaction<PolymorphicAction<ActionBase>> transaction, BlockChain<PolymorphicAction<ActionBase>> blockChain)
+            {
+                return ((IBlockPolicy<PolymorphicAction<ActionBase>>)_impl).DoesTransactionFollowsPolicy(transaction, blockChain);
+            }
+
+            public int GetMaxBlockBytes(long index)
+            {
+                return ((IBlockPolicy<PolymorphicAction<ActionBase>>)_impl).GetMaxBlockBytes(index);
+            }
+
+            public long GetNextBlockDifficulty(BlockChain<PolymorphicAction<ActionBase>> blocks)
+            {
+                return ((IBlockPolicy<PolymorphicAction<ActionBase>>)_impl).GetNextBlockDifficulty(blocks);
+            }
+
+            public InvalidBlockException ValidateNextBlock(BlockChain<PolymorphicAction<ActionBase>> blocks, Block<PolymorphicAction<ActionBase>> nextBlock)
+            {
+                if (_authorizedMiners.Any() && nextBlock.Miner is Address miner && !_authorizedMiners.Contains(miner))
+                {
+                    throw new InvalidBlockMinerException($"{miner} isn't authorized miner.");
+                }
+                
+                return ((IBlockPolicy<PolymorphicAction<ActionBase>>)_impl).ValidateNextBlock(blocks, nextBlock);
             }
         }
     }

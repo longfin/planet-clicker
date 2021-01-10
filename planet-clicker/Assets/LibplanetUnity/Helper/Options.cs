@@ -32,6 +32,8 @@ namespace LibplanetUnity.Helper
 
             public string[] trustedAppProtocolVersionSigners = new string[] { };
 
+            public string[] authorizedMiners = new string[] { };
+
             [Option("logging", Required = false, HelpText = "Turn on Libplanet logging.")]
             public bool Logging { get => logging; set => logging = value; }
 
@@ -76,6 +78,15 @@ namespace LibplanetUnity.Helper
             {
                 get => trustedAppProtocolVersionSigners;
                 set => trustedAppProtocolVersionSigners = value.ToArray();
+            }
+
+            [Option("authorized-miners",
+                    Required = false,
+                    HelpText = "Trustworthy miners who mine a new block")]
+            public IEnumerable<string> AuthorizedMiners
+            {
+                get => authorizedMiners;
+                set => authorizedMiners = value.ToArray();
             }
         }
 
