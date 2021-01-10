@@ -138,10 +138,7 @@ namespace _Script
                 actions.AddRange(_attacks.Select(pair => new SubCount(pair.Key, pair.Value)));
                 if (actions.Any())
                 {
-                    foreach (var i in Enumerable.Range(0, 1000))
-                    {
-                        Agent.instance.MakeTransaction(actions);
-                    }
+                    Agent.instance.MakeTransaction(actions);
                 }
                 _attacks = new Dictionary<Address, int>();
 
