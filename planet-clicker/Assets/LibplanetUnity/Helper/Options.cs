@@ -20,6 +20,8 @@ namespace LibplanetUnity.Helper
 
             public bool noMiner;
 
+            public bool renderActions = true;
+
             public string[] peers = new string[]{ };
 
             public string[] iceServers = new string[]{ };
@@ -44,6 +46,9 @@ namespace LibplanetUnity.Helper
 
             [Option("no-miner", Required = false, HelpText = "Do not mine block.")]
             public bool NoMiner { get => noMiner; set => noMiner = value; }
+
+            [Option("render-actions", Required = false, HelpText = "Render actions.")]
+            public bool RenderActions { get => renderActions; set => renderActions = value; }
 
             [Option("peer", Required = false, HelpText = "Peers to add. (Usage: --peer peerA peerB ...)")]
             public IEnumerable<string> Peers { get => peers; set => peers = value.ToArray(); }

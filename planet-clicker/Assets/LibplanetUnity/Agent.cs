@@ -137,7 +137,7 @@ namespace LibplanetUnity
                 port,
                 appProtocolVersion,
                 trustedAppProtocolVersionSigners,
-                renderers
+                options.RenderActions ? renderers : default
                 );
 
             _miner = options.NoMiner ? null : CoMiner();
