@@ -1,3 +1,4 @@
+using _Script.Action;
 using Bencodex.Types;
 using Libplanet;
 using Libplanet.Action;
@@ -26,10 +27,12 @@ using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
+using UniWebServer;
 
 namespace LibplanetUnity
 {
-    public class Agent : MonoSingleton<Agent>
+    [RequireComponent(typeof(EmbeddedWebServerComponent))]
+    public class Agent : MonoSingleton<Agent>, IWebResource
     {
         private static readonly TimeSpan BlockInterval = TimeSpan.FromSeconds(10);
 
@@ -67,6 +70,8 @@ namespace LibplanetUnity
         private CancellationTokenSource _cancellationTokenSource;
 
         private IStateStore _stateStore;
+
+        private EmbeddedWebServerComponent _webServer;
 
         public Address Address { get; private set; }
 
@@ -139,6 +144,62 @@ namespace LibplanetUnity
 
             StartSystemCoroutines();
             StartNullableCoroutine(_miner);
+
+            _webServer = GetComponent<EmbeddedWebServerComponent>();
+            _webServer.AddResource("/", this);
+        }
+
+        public void HandleRequest(Request request, Response response)
+        {
+            var headers = new Headers();
+            headers.Add("Content-Type", "text/html; charset=utf-8");
+            response.statusCode = 200;
+            response.message = "OK.";
+            response.headers = headers;
+
+            if (request.method == "POST")
+            {
+                foreach (string raw in request.body.Split(','))
+                {
+                    byte[] bytes = Convert.FromBase64String(raw);
+                    Transaction<PolymorphicAction<ActionBase>> tx =
+                        Transaction<PolymorphicAction<ActionBase>>.Deserialize(bytes);
+                    _blocks.StageTransaction(tx);
+                }
+            }
+            else if (request.path.StartsWith("/state"))
+            {
+                string addr = request.path.Split('?')[1];
+                var rawState = _blocks.GetState(new Address(addr));
+
+                response.Write(rawState.Inspection);
+            }
+            else if (request.path == "/blocks")
+            {
+                foreach (var hash in _blocks.BlockHashes)
+                {
+                    var block = _blocks[hash];
+                    response.Write($"Block[#{block.Index}, {hash}, {block.Timestamp.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss.fff")}] -  # of tx {block.Transactions.Count()}");
+                    response.Write("<br />\n");
+                }
+            }
+            else if (request.path == "/gen-tx")
+            {
+                var genesisHash = _blocks.Genesis.Hash;
+                for (var i = 0; i < 3000; i++)
+                {
+                    var pk = new PrivateKey();
+                    var act = new AddCount(1);
+                    var tx = Transaction<PolymorphicAction<ActionBase>>.Create(
+                        0,
+                        pk,
+                        genesisHash,
+                        new PolymorphicAction<ActionBase>[] { act }
+                    );
+                    response.Write(Convert.ToBase64String(tx.Serialize(true)));
+                    response.Write("\n");
+                }
+            }
         }
 
         private void Init(
