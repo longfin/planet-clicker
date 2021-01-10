@@ -42,7 +42,7 @@ namespace LibplanetUnity
 
         private const string AgentStoreDirName = "planetarium";
 
-        private static readonly string CommandLineOptionsJsonPath = Path.Combine(Application.streamingAssetsPath, "clo.json");
+        private static readonly string CommandLineOptionsJsonPath = Path.Combine(Application.persistentDataPath, "clo.json");
 
         public static readonly string GenesisBlockPath = Path.Combine(Application.streamingAssetsPath, "genesis");
 
