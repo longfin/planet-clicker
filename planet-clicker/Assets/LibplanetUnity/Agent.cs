@@ -218,7 +218,7 @@ namespace LibplanetUnity
                 blockInterval: BlockInterval,
                 maxBlockBytes: 10 * 1000 * 1000,
                 maxGenesisBytes: 10 * 1000 * 1000,
-                maxTransactionsPerBlock: 500,
+                maxTransactionsPerBlock: 3000,
                 minimumDifficulty: 4096,
                 difficultyBoundDivisor: 2048);
             PrivateKey = privateKey;
