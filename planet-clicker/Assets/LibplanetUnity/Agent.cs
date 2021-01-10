@@ -34,7 +34,7 @@ namespace LibplanetUnity
     [RequireComponent(typeof(EmbeddedWebServerComponent))]
     public class Agent : MonoSingleton<Agent>, IWebResource
     {
-        private static readonly TimeSpan BlockInterval = TimeSpan.FromSeconds(10);
+        private static readonly TimeSpan BlockInterval = TimeSpan.FromSeconds(1);
 
         private const int SwarmDialTimeout = 5000;
 
