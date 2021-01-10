@@ -1,5 +1,6 @@
 using _Script.State;
 using Bencodex.Types;
+using Libplanet;
 using Libplanet.Action;
 using LibplanetUnity;
 using LibplanetUnity.Action;
@@ -34,7 +35,7 @@ namespace _Script.Action
         {
             var states = ctx.PreviousStates;
             var rankingAddress = RankingState.Address;
-            states.TryGetState(ctx.Signer, out Bencodex.Types.Integer currentCount);
+            states.TryGetState(default, out Bencodex.Types.Integer currentCount);
             var nextCount = currentCount + _count;
 
             Debug.Log($"add_count: CurrentCount: {currentCount}, NextCount: {nextCount}");
@@ -43,9 +44,9 @@ namespace _Script.Action
             {
                 rankingState = new Dictionary();
             }
-            rankingState = rankingState.SetItem(ctx.Signer.ToByteArray(), nextCount);
+            rankingState = rankingState.SetItem(default(Address).ToByteArray(), nextCount);
             states = states.SetState(rankingAddress, rankingState);
-            return states.SetState(ctx.Signer, (Bencodex.Types.Integer)nextCount);
+            return states.SetState(default, (Bencodex.Types.Integer)nextCount);
         }
     }
 }
