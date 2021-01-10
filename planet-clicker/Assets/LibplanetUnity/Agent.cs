@@ -388,7 +388,6 @@ namespace LibplanetUnity
                 await _swarm.PreloadAsync(
                     TimeSpan.FromMilliseconds(SwarmDialTimeout),
                     null,
-                    trustedStateValidators: _trustedPeers,
                     cancellationToken: _cancellationTokenSource.Token
                 );
             });
