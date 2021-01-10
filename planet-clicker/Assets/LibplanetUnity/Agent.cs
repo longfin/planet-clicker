@@ -503,11 +503,7 @@ namespace LibplanetUnity
                     var sw = new System.Diagnostics.Stopwatch();
                     Debug.Log($"CoMiner: Starts with {_blocks.GetStagedTransactionIds().Count} transactions.");
                     sw.Start();
-                    var block = await _blocks.MineBlock(Address, append: false);
-                    sw.Stop();
-                    Debug.Log($"CoMiner: Block[{block.Hash}] with {block.Transactions.Count()} txs candidated. (Elapsed: {sw.Elapsed})");
-                    sw.Start();
-                    _blocks.Append(block);
+                    var block = await _blocks.MineBlock(Address);
                     sw.Stop();
                     Debug.Log($"CoMiner: Block[{block.Hash}] with {block.Transactions.Count()} txs appended. (Elapsed: {sw.Elapsed})");
 
